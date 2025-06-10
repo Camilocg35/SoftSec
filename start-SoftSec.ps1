@@ -110,7 +110,7 @@ $btnO_0.Add_Click({
 })
 
 $btnO_1 = New-Object System.Windows.Forms.Button
-$btnO_1.Text = "Liberar Mermória"
+$btnO_1.Text = "Liberar Memoria"
 $btnO_1.Location = New-Object System.Drawing.Point(10,55)
 $btnO_1.Size = New-Object System.Drawing.Size(200, 25)
 $btnO_1.Add_Click({
