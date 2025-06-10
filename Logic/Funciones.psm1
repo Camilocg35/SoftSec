@@ -217,10 +217,4 @@ function Remove-JunkFiles {
     }
 }
 
-Export-ModuleMember -Function \
-    Clear-BrowserCache, \
-    Free-SystemMemory, \
-    Manage-Startup, \
-    Optimize-Services, \
-    Remove-JunkFiles
 

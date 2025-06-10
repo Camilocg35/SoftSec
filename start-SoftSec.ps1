@@ -2,7 +2,7 @@
 Add-Type -AssemblyName System.Drawing
 # Importar funciones de la carpeta "Lógica"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Import-Module "$scriptDir\Lógica\Funciones.psm1"
+Import-Module "$scriptDir\Logic\Funciones.psm1"
 
 
 # Formulario Central
