@@ -313,9 +313,8 @@ $updatePanel = {
 	$panel0.Controls.Add($btnO_0)# Limpiar Cache Navegador.
 	$panel0.Controls.Add($btnO_1)# Liberar Memoria.
 	$panel0.Controls.Add($btnO_2)# Administrar Inicio Sistema.
-	$panel0.Controls.Add($btnO_3)# Optimizar Servicios.
-	$panel0.Controls.Add($btnO_4)# Rendimiento.
-	$panel0.Controls.Add($btnO_5)# Archivos Basura.
+        $panel0.Controls.Add($btnO_3)# Optimizar Servicios.
+        $panel0.Controls.Add($btnO_4)# Archivos Basura.
         }
         "Seguridad" { 
 	#$panel0.Controls.Add() 
