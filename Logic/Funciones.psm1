@@ -100,7 +100,7 @@ function Manage-Startup {
 
     $btnEliminar.Add_Click({
         if ($inicioListView.SelectedItems.Count -gt 0) {
-            $nombre = $inicioListView.SelectedItems[0].ToString()
+            $nombre = $inicioListView.SelectedItems[0].Text
             Remove-ItemProperty -Path $regPath -Name $nombre -ErrorAction SilentlyContinue
             $inicioListView.Items.Remove($inicioListView.SelectedItems[0])
             Set-StatusText $StatusLabel "Elemento eliminado: $nombre"
@@ -156,23 +156,31 @@ function Optimize-Services {
     $btnDetener.Size = New-Object System.Drawing.Size(250,20)
 
     $btnDetener.Add_Click({
+
+     
         $seleccionados = @()
         foreach ($item in $serviceList.Items) {
             if ($item.Checked) {
                 $seleccionados += $item
             }
         }
+	
 
         foreach ($item in $seleccionados) {
             $nombre = $item.Text
             Set-StatusText $StatusLabel "Deteniendo: $nombre"
             try {
-                Stop-Service -Name $nombre -Force -ErrorAction SilentlyContinue
-                Set-Service -Name $nombre -StartupType "Disabled" -ErrorAction SilentlyContinue
+                #Stop-Service -Name $nombre -Force -ErrorAction SilentlyContinue
+                #Set-Service -Name $nombre -StartupType "Disabled" -ErrorAction SilentlyContinue
+
+		Set-StatusText $StatusLabel "Salida de prueba: no está entrando acá"
+		Start-Process powershell -Verb RunAs -ArgumentList '-Command "Stop-Service -Name ''$nombre'' -Force; Set-Service -Name ''$nombre'' -StartupType Disabled"'
+
+
 
                 $nuevo = New-Object System.Windows.Forms.ListViewItem($item.Text)
-                $nuevo.SubItems.Add("Stopped")
-                $nuevo.SubItems.Add("Disabled")
+                $nuevo.SubItems[1].Add("Stopped")
+                $nuevo.SubItems[2].Add("Disabled")
                 $nuevo.Checked = $true
 
                 $idx = $serviceList.Items.IndexOf($item)
@@ -183,7 +191,7 @@ function Optimize-Services {
                 [System.Windows.Forms.MessageBox]::Show("Error deteniendo: $nombre")
             }
         }
-        Set-StatusText $StatusLabel "Servicios optimizados"
+        #Set-StatusText $StatusLabel "Servicios optimizados"
     })
 
     $Panel.Controls.Clear()
