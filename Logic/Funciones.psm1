@@ -100,7 +100,7 @@ function Manage-Startup {
 
     $btnEliminar.Add_Click({
         if ($inicioListView.SelectedItems.Count -gt 0) {
-            $nombre = $inicioListView.SelectedItems[0].Text
+            $nombre = $inicioListView.SelectedItems[0].ToString()
             Remove-ItemProperty -Path $regPath -Name $nombre -ErrorAction SilentlyContinue
             $inicioListView.Items.Remove($inicioListView.SelectedItems[0])
             Set-StatusText $StatusLabel "Elemento eliminado: $nombre"
