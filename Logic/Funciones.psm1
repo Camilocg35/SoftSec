@@ -157,15 +157,13 @@ function Optimize-Services {
 
     $btnDetener.Add_Click({
         $seleccionados = foreach ($item in $script:serviceList.Items) {
-            if ($item.Checked) { $_ }
-        }
-
-        foreach ($item in $seleccionados) {
-            $nombre = $item.Text
+            if ($item.Checked) { 
+		$nombre = $item.Text
             Set-StatusText $StatusLabel "Deteniendo: $nombre"
             try {
-                Start-Process powershell -Verb RunAs \
-                    -ArgumentList "-Command \"Stop-Service -Name '$nombre' -Force; Set-Service -Name '$nombre' -StartupType Disabled\""
+                
+		Stop-Service -Name "$nombre" -Force -ErrorAction SilentlyContinue
+		Set-Service -Name "$nombre" -StartupType Disabled -ErrorAction SilentlyContinue
 
                 $nuevo = New-Object System.Windows.Forms.ListViewItem($item.Text)
                 $nuevo.SubItems[1].Add("Stopped")
@@ -179,6 +177,7 @@ function Optimize-Services {
                 [System.Windows.Forms.MessageBox]::Show("Error deteniendo: $nombre")
             }
         }
+}
     })
 
     $Panel.Controls.Clear()
@@ -221,5 +220,4 @@ function Remove-JunkFiles {
         Set-StatusText $StatusLabel "Error: $_"
     }
 }
-
 
