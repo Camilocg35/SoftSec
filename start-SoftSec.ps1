@@ -249,9 +249,8 @@ $btnO_3.Add_Click({
 
 $btnDetener.Add_Click({
     
-    $seleccionados = @() 
-	Write-Host "Total seleccionados: $($seleccionados.Count)"
-	Write-Host "$($serviceList.OnItemChecked.ToString())"
+    $seleccionados = @()
+        Write-Host "Total seleccionados: $($seleccionados.Count)"
     foreach ($item in $serviceList.Items) {
         if ($item.Checked) {
             $seleccionados += $item
@@ -264,7 +263,6 @@ $btnDetener.Add_Click({
         try {
             Stop-Service -Name $nombre -Force -ErrorAction SilentlyContinue
             Set-Service -Name $nombre -StartupType "Disabled" -ErrorAction SilentlyContinue
-	    Set-Service -Name $nombre -Status "Stopped" -ErrorAction SilentlyContinue
 
             $nuevo = New-Object System.Windows.Forms.ListViewItem($item.Text)
             $nuevo.SubItems.Add("Stopped")
