@@ -3,7 +3,7 @@ function Set-StatusText {
         $Label,
         [string]$Text
     )
-    if ($null -ne $Label -and $Label.PSObject.Properties['Text']) {
+    if ($null -ne $Label -and $Label.PSObject.Properties.Match('Text')) {
         $Label.Text = $Text
     }
 }
