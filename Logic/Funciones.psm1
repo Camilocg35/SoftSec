@@ -128,15 +128,15 @@ function Optimize-Services {
     Start-Sleep -Milliseconds 300
     $ProgressBar.Value = 30
 
-    $serviceList = New-Object System.Windows.Forms.ListView
-    $serviceList.View = 'Details'
-    $serviceList.FullRowSelect = $true
-    $serviceList.CheckBoxes = $true
-    $serviceList.Size = New-Object System.Drawing.Size(500, 120)
-    $serviceList.Location = New-Object System.Drawing.Point(10,30)
-    $serviceList.Columns.Add("Servicio", 150)
-    $serviceList.Columns.Add("Estado", 100)
-    $serviceList.Columns.Add("Tipo de Inicio", 120)
+    $script:serviceList = New-Object System.Windows.Forms.ListView
+    $script:serviceList.View = 'Details'
+    $script:serviceList.FullRowSelect = $true
+    $script:serviceList.CheckBoxes = $true
+    $script:serviceList.Size = New-Object System.Drawing.Size(500, 120)
+    $script:serviceList.Location = New-Object System.Drawing.Point(10,30)
+    $script:serviceList.Columns.Add("Servicio", 150)
+    $script:serviceList.Columns.Add("Estado", 100)
+    $script:serviceList.Columns.Add("Tipo de Inicio", 120)
 
     $servicios = Get-Service | Where-Object {
         $_.Status -eq 'Running' -and
@@ -147,7 +147,7 @@ function Optimize-Services {
         $item = New-Object System.Windows.Forms.ListViewItem($svc.Name)
         $item.SubItems.Add($svc.Status.ToString())
         $item.SubItems.Add($svc.StartType.ToString())
-        $serviceList.Items.Add($item)
+        $script:serviceList.Items.Add($item)
     }
 
     $btnDetener = New-Object System.Windows.Forms.Button
@@ -156,46 +156,33 @@ function Optimize-Services {
     $btnDetener.Size = New-Object System.Drawing.Size(250,20)
 
     $btnDetener.Add_Click({
-
-     
-        $seleccionados = @()
-        foreach ($item in $serviceList.Items) {
-            if ($item.Checked) {
-                $seleccionados += $item
-            }
+        $seleccionados = foreach ($item in $script:serviceList.Items) {
+            if ($item.Checked) { $_ }
         }
-	
 
         foreach ($item in $seleccionados) {
             $nombre = $item.Text
             Set-StatusText $StatusLabel "Deteniendo: $nombre"
             try {
-                #Stop-Service -Name $nombre -Force -ErrorAction SilentlyContinue
-                #Set-Service -Name $nombre -StartupType "Disabled" -ErrorAction SilentlyContinue
-
-		Set-StatusText $StatusLabel "Salida de prueba: no está entrando acá"
-		Start-Process powershell -Verb RunAs -ArgumentList '-Command "Stop-Service -Name ''$nombre'' -Force; Set-Service -Name ''$nombre'' -StartupType Disabled"'
-
-
+                Start-Process powershell -Verb RunAs \
+                    -ArgumentList "-Command \"Stop-Service -Name '$nombre' -Force; Set-Service -Name '$nombre' -StartupType Disabled\""
 
                 $nuevo = New-Object System.Windows.Forms.ListViewItem($item.Text)
                 $nuevo.SubItems[1].Add("Stopped")
                 $nuevo.SubItems[2].Add("Disabled")
                 $nuevo.Checked = $true
 
-                $idx = $serviceList.Items.IndexOf($item)
-                $serviceList.Items.RemoveAt($idx)
-                $serviceList.Items.Insert($idx, $nuevo)
-            }
-            catch {
+                $idx = $script:serviceList.Items.IndexOf($item)
+                $script:serviceList.Items.RemoveAt($idx)
+                $script:serviceList.Items.Insert($idx, $nuevo)
+            } catch {
                 [System.Windows.Forms.MessageBox]::Show("Error deteniendo: $nombre")
             }
         }
-        #Set-StatusText $StatusLabel "Servicios optimizados"
     })
 
     $Panel.Controls.Clear()
-    $Panel.Controls.Add($serviceList)
+    $Panel.Controls.Add($script:serviceList)
     $Panel.Controls.Add($btnDetener)
     $Panel.Controls.Add($ProgressBar)
     $Panel.Controls.Add($StatusLabel)
