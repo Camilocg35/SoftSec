@@ -123,10 +123,7 @@ function Optimize-Services {
         [System.Windows.Forms.ProgressBar]$ProgressBar,
         [System.Windows.Forms.Label]$StatusLabel
     )
-    $ProgressBar.Value = 0
-    Set-StatusText $StatusLabel "Cargando servicios..."
-    Start-Sleep -Milliseconds 300
-    $ProgressBar.Value = 30
+    $Panel.Controls.Clear()
 
     $script:serviceList = New-Object System.Windows.Forms.ListView
     $script:serviceList.View = 'Details'
@@ -147,7 +144,7 @@ function Optimize-Services {
         $item = New-Object System.Windows.Forms.ListViewItem($svc.Name)
         $item.SubItems.Add($svc.Status.ToString())
         $item.SubItems.Add($svc.StartType.ToString())
-        $script:serviceList.Items.Add($item)
+        $serviceList.Items.Add($item)
     }
 
     $btnDetener = New-Object System.Windows.Forms.Button
@@ -156,33 +153,47 @@ function Optimize-Services {
     $btnDetener.Size = New-Object System.Drawing.Size(250,20)
 
     $btnDetener.Add_Click({
-        $seleccionados = foreach ($item in $script:serviceList.Items) {
-            if ($item.Checked) { 
-		$nombre = $item.Text
+        $itemsToRemove = @()
+        foreach ($item in @($serviceList.CheckedItems)) {
+            $nombre = $item.Text
             Set-StatusText $StatusLabel "Deteniendo: $nombre"
             try {
-                
-		Stop-Service -Name "$nombre" -Force -ErrorAction SilentlyContinue
-		Set-Service -Name "$nombre" -StartupType Disabled -ErrorAction SilentlyContinue
-
-                $nuevo = New-Object System.Windows.Forms.ListViewItem($item.Text)
-                $nuevo.SubItems[1].Add("Stopped")
-                $nuevo.SubItems[2].Add("Disabled")
-                $nuevo.Checked = $true
-
-                $idx = $script:serviceList.Items.IndexOf($item)
-                $script:serviceList.Items.RemoveAt($idx)
-                $script:serviceList.Items.Insert($idx, $nuevo)
+                $svc = Get-Service -Name "$nombre" -ErrorAction Stop
+                if ($svc.Status -eq 'Running') {
+                    if ($svc.CanStop) {
+                        Stop-Service -Name "$nombre" -Force -ErrorAction Stop
+                        Set-Service -Name "$nombre" -StartupType Disabled -ErrorAction Stop
+                        $itemsToRemove += $item
+                        Set-StatusText $StatusLabel "Servicio detenido: $nombre"
+                    } else {
+                        [System.Windows.Forms.MessageBox]::Show(
+                            "El servicio $nombre no puede ser detenido manualmente por el sistema.",
+                            "No se puede detener",
+                            [System.Windows.Forms.MessageBoxButtons]::OK,
+                            [System.Windows.Forms.MessageBoxIcon]::Warning
+                        )
+                        Set-StatusText $StatusLabel "No se puede detener $nombre"
+                    }
+                } else {
+                    Set-StatusText $StatusLabel "El servicio $nombre no está en ejecución."
+                }
             } catch {
-                [System.Windows.Forms.MessageBox]::Show("Error deteniendo: $nombre")
+                [System.Windows.Forms.MessageBox]::Show(
+                    "Error al detener el servicio: $nombre`n$($_.Exception.Message)",
+                    "Error",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Error
+                )
+                Set-StatusText $StatusLabel "Error al detener $nombre"
             }
         }
-}
+        foreach ($item in $itemsToRemove) {
+            $serviceList.Items.Remove($item)
+        }
     })
 
-    $Panel.Controls.Clear()
-    $Panel.Controls.Add($script:serviceList)
     $Panel.Controls.Add($btnDetener)
+    $Panel.Controls.Add($serviceList)
     $Panel.Controls.Add($ProgressBar)
     $Panel.Controls.Add($StatusLabel)
 
@@ -220,4 +231,3 @@ function Remove-JunkFiles {
         Set-StatusText $StatusLabel "Error: $_"
     }
 }
-
