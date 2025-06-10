@@ -1,3 +1,13 @@
+function Set-StatusText {
+    param(
+        $Label,
+        [string]$Text
+    )
+    if ($null -ne $Label -and $Label.PSObject.Properties['Text']) {
+        $Label.Text = $Text
+    }
+}
+
 function Clear-BrowserCache {
     param(
         [System.Windows.Forms.ProgressBar]$ProgressBar,
@@ -5,28 +15,28 @@ function Clear-BrowserCache {
     )
     try {
         $ProgressBar.Value = 0
-        $StatusLabel.Text = "Limpiando caché..."
+        Set-StatusText $StatusLabel "Limpiando caché..."
 
         Start-Sleep -Milliseconds 200
         $ProgressBar.Value = 20
-        $StatusLabel.Text = "Procesando Chrome..."
+        Set-StatusText $StatusLabel "Procesando Chrome..."
         Remove-Item "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction SilentlyContinue
 
         Start-Sleep -Milliseconds 300
         $ProgressBar.Value = 50
-        $StatusLabel.Text = "Procesando Edge..."
+        Set-StatusText $StatusLabel "Procesando Edge..."
         Remove-Item "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Cache\*" -Recurse -Force -ErrorAction SilentlyContinue
 
         Start-Sleep -Milliseconds 300
         $ProgressBar.Value = 80
-        $StatusLabel.Text = "Procesando Firefox..."
+        Set-StatusText $StatusLabel "Procesando Firefox..."
         Remove-Item "$env:APPDATA\Mozilla\Firefox\Profiles\*\cache2\entries\*" -Recurse -Force -ErrorAction SilentlyContinue
 
         $ProgressBar.Value = 100
-        $StatusLabel.Text = "Caché limpiada correctamente"
+        Set-StatusText $StatusLabel "Caché limpiada correctamente"
     }
     catch {
-        $StatusLabel.Text = "Error: $_"
+        Set-StatusText $StatusLabel "Error: $_"
     }
 }
 
@@ -37,7 +47,7 @@ function Free-SystemMemory {
     )
     try {
         $ProgressBar.Value = 0
-        $StatusLabel.Text = "Liberando memoria..."
+        Set-StatusText $StatusLabel "Liberando memoria..."
 
         Start-Sleep -Milliseconds 200
         $ProgressBar.Value = 30
@@ -46,10 +56,10 @@ function Free-SystemMemory {
 
         Start-Sleep -Milliseconds 300
         $ProgressBar.Value = 100
-        $StatusLabel.Text = "Memoria liberada (GC)"
+        Set-StatusText $StatusLabel "Memoria liberada (GC)"
     }
     catch {
-        $StatusLabel.Text = "Error: $_"
+        Set-StatusText $StatusLabel "Error: $_"
     }
 }
 
@@ -60,7 +70,7 @@ function Manage-Startup {
         [System.Windows.Forms.Label]$StatusLabel
     )
     $ProgressBar.Value = 0
-    $StatusLabel.Text = "Cargando programas de inicio..."
+    Set-StatusText $StatusLabel "Cargando programas de inicio..."
     Start-Sleep -Milliseconds 300
     $ProgressBar.Value = 30
 
@@ -93,7 +103,7 @@ function Manage-Startup {
             $nombre = $inicioListView.SelectedItems[0].Text
             Remove-ItemProperty -Path $regPath -Name $nombre -ErrorAction SilentlyContinue
             $inicioListView.Items.Remove($inicioListView.SelectedItems[0])
-            $StatusLabel.Text = "Elemento eliminado: $nombre"
+            Set-StatusText $StatusLabel "Elemento eliminado: $nombre"
         }
     })
 
@@ -104,7 +114,7 @@ function Manage-Startup {
     $Panel.Controls.Add($StatusLabel)
 
     $ProgressBar.Value = 100
-    $StatusLabel.Text = "Programas de inicio cargados"
+    Set-StatusText $StatusLabel "Programas de inicio cargados"
 }
 
 function Optimize-Services {
@@ -114,7 +124,7 @@ function Optimize-Services {
         [System.Windows.Forms.Label]$StatusLabel
     )
     $ProgressBar.Value = 0
-    $StatusLabel.Text = "Cargando servicios..."
+    Set-StatusText $StatusLabel "Cargando servicios..."
     Start-Sleep -Milliseconds 300
     $ProgressBar.Value = 30
 
@@ -155,7 +165,7 @@ function Optimize-Services {
 
         foreach ($item in $seleccionados) {
             $nombre = $item.Text
-            $StatusLabel.Text = "Deteniendo: $nombre"
+            Set-StatusText $StatusLabel "Deteniendo: $nombre"
             try {
                 Stop-Service -Name $nombre -Force -ErrorAction SilentlyContinue
                 Set-Service -Name $nombre -StartupType "Disabled" -ErrorAction SilentlyContinue
@@ -173,7 +183,7 @@ function Optimize-Services {
                 [System.Windows.Forms.MessageBox]::Show("Error deteniendo: $nombre")
             }
         }
-        $StatusLabel.Text = "Servicios optimizados"
+        Set-StatusText $StatusLabel "Servicios optimizados"
     })
 
     $Panel.Controls.Clear()
@@ -183,7 +193,7 @@ function Optimize-Services {
     $Panel.Controls.Add($StatusLabel)
 
     $ProgressBar.Value = 100
-    $StatusLabel.Text = "Servicios cargados"
+    Set-StatusText $StatusLabel "Servicios cargados"
 }
 
 function Remove-JunkFiles {
@@ -193,7 +203,7 @@ function Remove-JunkFiles {
     )
     try {
         $ProgressBar.Value = 0
-        $StatusLabel.Text = "Eliminando archivos temporales..."
+        Set-StatusText $StatusLabel "Eliminando archivos temporales..."
         Start-Sleep -Milliseconds 300
         $ProgressBar.Value = 30
         Remove-Item "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
@@ -210,10 +220,10 @@ function Remove-JunkFiles {
             }
         } catch {}
         $ProgressBar.Value = 100
-        $StatusLabel.Text = "Archivos basura eliminados"
+        Set-StatusText $StatusLabel "Archivos basura eliminados"
     }
     catch {
-        $StatusLabel.Text = "Error: $_"
+        Set-StatusText $StatusLabel "Error: $_"
     }
 }
 
