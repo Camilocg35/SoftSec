@@ -1,197 +1,94 @@
-﻿# --- Bloque de elevación automática ---
+﻿# Auto-elevación del script si no está en modo Administrador
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Start-Process powershell "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-function Test-IsAdmin {
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
+# Importa el módulo de funciones con recuperación integrada
+Import-Module "$PSScriptRoot\Logic\Funciones.psm1"
 
-if (-not (Test-IsAdmin)) {
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = 'powershell.exe'
-    $psi.Arguments = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    $psi.Verb = 'runas'
-    try {
-        [System.Diagnostics.Process]::Start($psi) | Out-Null
-    } catch {
-        [System.Windows.Forms.MessageBox]::Show(
-            "Se requieren permisos de administrador para ejecutar SoftSec.",
-            "Permiso requerido",
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Error
-        )
-    }
-    exit
-}
-# --- Fin del bloque de elevación ---
-
-# Importar funciones de la carpeta "Lógica"
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Import-Module "$scriptDir\Logic\Funciones.psm1"
-
-# Formulario Central
+# Ventana principal
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "SoftSec 1.0"
-$form.Size = New-Object System.Drawing.Size(900, 650)
-$form.FormBorderStyle = 'Sizable'
-$form.MaximizeBox = $true
-$form.MinimizeBox = $true
-$form.StartPosition = 'CenterScreen'
-$form.BackColor = [System.Drawing.Color]::Silver
+$form.Text = "SoftSec Optimizer"
+$form.Size = New-Object System.Drawing.Size(800, 600)
+$form.StartPosition = "CenterScreen"
 
-# Label SoftSec 1.0
-$label0 = New-Object System.Windows.Forms.Label
-$label0.Text = "SoftSec 1.0 Suite Informática"
-$label0.Location = New-Object System.Drawing.Point(250,30)
-$label0.Size = New-Object System.Drawing.Size(600, 30)
-$label0.Font = New-Object System.Drawing.Font("Segoe UI", 15)
-$form.Controls.Add($label0)
+# Panel principal donde se muestran los módulos
+$Panel = New-Object System.Windows.Forms.Panel
+$Panel.Size = New-Object System.Drawing.Size(760, 420)
+$Panel.Location = New-Object System.Drawing.Point(10,70)
+$form.Controls.Add($Panel)
 
-# DataGrid Central
-$gridMain = New-Object Windows.Forms.DataGridView
-$gridMain.Size = New-Object System.Drawing.Size(870, 250)
-$gridMain.Anchor = 'Top, Left, Right'
-$gridMain.Location = '10,70'
-$gridMain.BackColor = [System.Drawing.Color]::Black
-$gridMain.ReadOnly = $true
-$gridMain.AutoSizeColumnsMode = 'Fill'
-$gridMain.AllowUserToAddRows = $false
-$form.Controls.Add($gridMain)
+# Barra de progreso y status
+$ProgressBar = New-Object System.Windows.Forms.ProgressBar
+$ProgressBar.Size = New-Object System.Drawing.Size(740, 20)
+$ProgressBar.Location = New-Object System.Drawing.Point(10,500)
+$form.Controls.Add($ProgressBar)
 
-# TabControl
-$tabControl = New-Object System.Windows.Forms.TabControl
-$tabControl.Size = New-Object System.Drawing.Size(900, 25)
-$tabControl.Anchor = 'Top, Left, Right'
-$form.Controls.Add($tabControl)
+$StatusLabel = New-Object System.Windows.Forms.Label
+$StatusLabel.Size = New-Object System.Drawing.Size(740, 30)
+$StatusLabel.Location = New-Object System.Drawing.Point(10,530)
+$form.Controls.Add($StatusLabel)
 
-# Archivo
-$tab1 = New-Object System.Windows.Forms.TabPage
-$tab1.Text = "Archivo"
+# Botones de menú superior
+$btnStartup = New-Object System.Windows.Forms.Button
+$btnStartup.Text = "Programas de Inicio"
+$btnStartup.Size = New-Object System.Drawing.Size(140,40)
+$btnStartup.Location = New-Object System.Drawing.Point(10,10)
+$form.Controls.Add($btnStartup)
 
-# Edición
-$tab2 = New-Object System.Windows.Forms.TabPage
-$tab2.Text = "Edición"
+$btnServicios = New-Object System.Windows.Forms.Button
+$btnServicios.Text = "Servicios"
+$btnServicios.Size = New-Object System.Drawing.Size(140,40)
+$btnServicios.Location = New-Object System.Drawing.Point(160,10)
+$form.Controls.Add($btnServicios)
 
-# Opciones
-$tab3 = New-Object System.Windows.Forms.TabPage
-$tab3.Text = "Opciones"
+$btnTemp = New-Object System.Windows.Forms.Button
+$btnTemp.Text = "Limpiar Basura"
+$btnTemp.Size = New-Object System.Drawing.Size(140,40)
+$btnTemp.Location = New-Object System.Drawing.Point(310,10)
+$form.Controls.Add($btnTemp)
 
-$tabControl.TabPages.Add($tab1)
-$tabControl.TabPages.Add($tab2)
-$tabControl.TabPages.Add($tab3)
+$btnCache = New-Object System.Windows.Forms.Button
+$btnCache.Text = "Limpiar Caché"
+$btnCache.Size = New-Object System.Drawing.Size(140,40)
+$btnCache.Location = New-Object System.Drawing.Point(460,10)
+$form.Controls.Add($btnCache)
 
-# Label Opciones
-$label1 = New-Object System.Windows.Forms.Label
-$label1.Text = "Opciones"
-$label1.Location = New-Object System.Drawing.Point(10, 325)
-$label1.Size = New-Object System.Drawing.Size(100, 20)
-$label1.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$form.Controls.Add($label1)
+$btnMem = New-Object System.Windows.Forms.Button
+$btnMem.Text = "Liberar Memoria"
+$btnMem.Size = New-Object System.Drawing.Size(140,40)
+$btnMem.Location = New-Object System.Drawing.Point(610,10)
+$form.Controls.Add($btnMem)
 
-# ComboBox opciones
-$comboBox = New-Object System.Windows.Forms.ComboBox
-$comboBox.Location = New-Object System.Drawing.Point(10, 350)
-$comboBox.Size = New-Object System.Drawing.Size(200, 20)
-$comboBox.DropDownStyle = 'DropDownList'
-$comboBox.Items.AddRange(@("Optimización", "Seguridad", "Monitorización", "Recuperación"))
-$comboBox.SelectedIndex = 0
-$form.Controls.Add($comboBox)
+$btnRecuperacion = New-Object System.Windows.Forms.Button
+$btnRecuperacion.Text = "Recuperación"
+$btnRecuperacion.Size = New-Object System.Drawing.Size(140,40)
+$btnRecuperacion.Location = New-Object System.Drawing.Point(10, 50)
+$form.Controls.Add($btnRecuperacion)
 
-# Panel Optimización
-$panel0 = New-Object System.Windows.Forms.Panel
-$panel0.Size = New-Object System.Drawing.Size(870, 200)
-$panel0.Location = New-Object System.Drawing.Point(10,390)
-$Panel0.Anchor = 'Top, Left, Right'
-$panel0.BackColor = [System.Drawing.Color]::White
-$panel0.BorderStyle = 'FixedSingle'
-$panel0.Visible = $true
-$form.Controls.Add($panel0)
-
-######################################################################################
-##### Vista Optimización #############################################################
-######################################################################################
-
-$progressBar = New-Object System.Windows.Forms.ProgressBar
-$progressBar.Location = New-Object System.Drawing.Point(10,175)
-$progressBar.Size = New-Object System.Drawing.Size(900, 15)
-$progressBar.Style = 'Blocks'
-$progressBar.Minimum = 0
-$progressBar.Maximum = 100
-$progressBar.Value = 0
-
-$statusLabel = New-Object System.Windows.Forms.Label
-$statusLabel.Location = New-Object System.Drawing.Point(10, 160)
-$statusLabel.Size = New-Object System.Drawing.Size(900, 20)
-$statusLabel.Text = "Estatus."
-
-$btnO_0 = New-Object System.Windows.Forms.Button
-$btnO_0.Text = "Limpiar Caché Navegador"
-$btnO_0.Location = New-Object System.Drawing.Point(10,25)
-$btnO_0.Size = New-Object System.Drawing.Size(200, 25)
-$btnO_0.Add_Click({
-    Clear-BrowserCache -ProgressBar $progressBar -StatusLabel $statusLabel
+# Acciones de los botones
+$btnStartup.Add_Click({
+    Manage-Startup -Panel $Panel -ProgressBar $ProgressBar -StatusLabel $StatusLabel
+})
+$btnServicios.Add_Click({
+    Optimize-Services -Panel $Panel -ProgressBar $ProgressBar -StatusLabel $StatusLabel
+})
+$btnTemp.Add_Click({
+    Remove-JunkFiles -ProgressBar $ProgressBar -StatusLabel $StatusLabel
+})
+$btnCache.Add_Click({
+    Clear-BrowserCache -ProgressBar $ProgressBar -StatusLabel $StatusLabel
+})
+$btnMem.Add_Click({
+    Free-SystemMemory -ProgressBar $ProgressBar -StatusLabel $StatusLabel
+})
+$btnRecuperacion.Add_Click({
+    Start-WinFR-Recovery -Panel $Panel -ProgressBar $ProgressBar -StatusLabel $StatusLabel
 })
 
-$btnO_1 = New-Object System.Windows.Forms.Button
-$btnO_1.Text = "Liberar Memoria"
-$btnO_1.Location = New-Object System.Drawing.Point(10,55)
-$btnO_1.Size = New-Object System.Drawing.Size(200, 25)
-$btnO_1.Add_Click({
-    Free-SystemMemory -ProgressBar $progressBar -StatusLabel $statusLabel
-})
-
-$btnO_2 = New-Object System.Windows.Forms.Button
-$btnO_2.Text = "Administrar Inicio Sistema"
-$btnO_2.Location = New-Object System.Drawing.Point(10,90)
-$btnO_2.Size = New-Object System.Drawing.Size(200, 25)
-$btnO_2.Add_Click({
-    Manage-Startup -Panel $panel0 -ProgressBar $progressBar -StatusLabel $statusLabel
-})
-
-$btnO_3 = New-Object System.Windows.Forms.Button
-$btnO_3.Text = "Rendimiento"
-$btnO_3.Location = New-Object System.Drawing.Point(210,25)
-$btnO_3.Size = New-Object System.Drawing.Size(200, 25)
-$btnO_3.Add_Click({
-    Optimize-Services -Panel $panel0 -ProgressBar $progressBar -StatusLabel $statusLabel
-})
-
-$btnO_4 = New-Object System.Windows.Forms.Button
-$btnO_4.Text = "Archivos Basura"
-$btnO_4.Location = New-Object System.Drawing.Point(210,55)
-$btnO_4.Size = New-Object System.Drawing.Size(200, 25)
-$btnO_4.Add_Click({
-    Remove-JunkFiles -ProgressBar $progressBar -StatusLabel $statusLabel
-})
-
-# Función para actualizar contenido
-$updatePanel = {
-    $panel0.Controls.Clear()
-    switch ($comboBox.SelectedItem) {
-        "Optimización" {
-            $panel0.Controls.Add($progressBar)
-            $panel0.Controls.Add($statusLabel)
-            $panel0.Controls.Add($btnO_0)
-            $panel0.Controls.Add($btnO_1)
-            $panel0.Controls.Add($btnO_2)
-            $panel0.Controls.Add($btnO_3)
-            $panel0.Controls.Add($btnO_4)
-        }
-        "Seguridad" { 
-            #$panel0.Controls.Add() 
-        }
-        "Monitorización" { 
-            #$panel0.Controls.Add() 
-        }
-        "Recuperación" { 
-            #$panel0.Controls.Add() 
-        }
-    }
-}
-
-
-$comboBox.Add_SelectedIndexChanged($updatePanel)
-$updatePanel.Invoke()
-$form.ShowDialog()
+# Mostrar la ventana
+[void]$form.ShowDialog()
