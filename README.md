@@ -64,6 +64,14 @@ SoftSec está pensado para crecer. Puedes proponer o desarrollar módulos para:
 
 ---
 
+## Licencia
+
+Este proyecto se distribuye bajo la licencia MIT.  
+**Toda copia o redistribución debe mantener el nombre del autor original: Camilo CG**  
+Consulta el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
 ## Preguntas frecuentes
 
 **¿SoftSec puede dañar mi sistema?**  

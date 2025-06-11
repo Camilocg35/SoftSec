@@ -1,4 +1,10 @@
-﻿# Función para mostrar mensajes de error con opción de copiar
+﻿# start-SoftSec.ps1
+# Copyright (c) 2025 Camilo CG
+# Licensed under the MIT License.
+# Este software puede ser usado, modificado y distribuido,
+# siempre que este aviso de copyright y atribución se mantenga.
+# Función para mostrar mensajes de error con opción de copiar
+
 function Show-Exception {
     param($e)
     Add-Type -AssemblyName System.Windows.Forms
