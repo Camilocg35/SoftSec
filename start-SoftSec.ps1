@@ -42,8 +42,16 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-Import-Module "$PSScriptRoot\Logic\Funciones.psm1" -Force
-Import-Module "$PSScriptRoot\Logic\Funciones-Admin.psm1" -Force
+$exePath = [System.IO.Path]::GetDirectoryName([System.Reflection.Assembly]::GetEntryAssembly().Location)
+$modulo = Join-Path -Path $exePath -ChildPath 'Logic\Funciones.psm1'
+Import-Module $modulo -Force
+
+$exePath2 = [System.IO.Path]::GetDirectoryName([System.Reflection.Assembly]::GetEntryAssembly().Location)
+$modulo = Join-Path -Path $exePath2 -ChildPath 'Logic\Funciones-Admin.psm1'
+Import-Module $modulo -Force
+
+#Import-Module "$PSScriptRoot\Logic\Funciones.psm1" -Force
+#Import-Module "$PSScriptRoot\Logic\Funciones-Admin.psm1" -Force
 
 # Ventana principal
 $form = New-Object System.Windows.Forms.Form
@@ -70,34 +78,34 @@ $StatusLabel.Location = New-Object System.Drawing.Point(10, 675)
 $form.Controls.Add($StatusLabel)
 
 # Botones de menú superior
-$btnStartup = New-Object System.Windows.Forms.Button
-$btnStartup.Text = "Programas de Inicio"
-$btnStartup.Size = New-Object System.Drawing.Size(140,40)
-$btnStartup.Location = New-Object System.Drawing.Point(10,10)
-$form.Controls.Add($btnStartup)
+#$btnStartup = New-Object System.Windows.Forms.Button
+#$btnStartup.Text = "Programas de Inicio"
+#$btnStartup.Size = New-Object System.Drawing.Size(140,40)
+#$btnStartup.Location = New-Object System.Drawing.Point(10,10)
+#$form.Controls.Add($btnStartup)
 
-$btnServicios = New-Object System.Windows.Forms.Button
-$btnServicios.Text = "Servicios"
-$btnServicios.Size = New-Object System.Drawing.Size(140,40)
-$btnServicios.Location = New-Object System.Drawing.Point(160,10)
-$form.Controls.Add($btnServicios)
+#$btnServicios = New-Object System.Windows.Forms.Button
+#$btnServicios.Text = "Servicios"
+#$btnServicios.Size = New-Object System.Drawing.Size(140,40)
+#$btnServicios.Location = New-Object System.Drawing.Point(160,10)
+#$form.Controls.Add($btnServicios)
 
 $btnTemp = New-Object System.Windows.Forms.Button
 $btnTemp.Text = "Limpiar Basura"
 $btnTemp.Size = New-Object System.Drawing.Size(140,40)
-$btnTemp.Location = New-Object System.Drawing.Point(310,10)
+$btnTemp.Location = New-Object System.Drawing.Point(10,10)
 $form.Controls.Add($btnTemp)
 
 $btnCache = New-Object System.Windows.Forms.Button
 $btnCache.Text = "Limpiar Caché"
 $btnCache.Size = New-Object System.Drawing.Size(140,40)
-$btnCache.Location = New-Object System.Drawing.Point(460,10)
+$btnCache.Location = New-Object System.Drawing.Point(160,10)
 $form.Controls.Add($btnCache)
 
 $btnMem = New-Object System.Windows.Forms.Button
 $btnMem.Text = "Liberar Memoria"
 $btnMem.Size = New-Object System.Drawing.Size(140,40)
-$btnMem.Location = New-Object System.Drawing.Point(610,10)
+$btnMem.Location = New-Object System.Drawing.Point(310,10)
 $form.Controls.Add($btnMem)
 
 $btnRecuperacion = New-Object System.Windows.Forms.Button
@@ -481,14 +489,14 @@ function Show-AdminSoportePanel {
 }
 
 # Acciones de los botones principales
-$btnStartup.Add_Click({
-    try { Manage-Startup -Panel $script:Panel -ProgressBar $ProgressBar -StatusLabel $StatusLabel }
-    catch { Show-Exception $_ }
-})
-$btnServicios.Add_Click({
-    try { Optimize-Services -Panel $script:Panel -ProgressBar $ProgressBar -StatusLabel $StatusLabel }
-    catch { Show-Exception $_ }
-})
+#$btnStartup.Add_Click({
+#    try { Manage-Startup -Panel $script:Panel -ProgressBar $ProgressBar -StatusLabel $StatusLabel }
+#    catch { Show-Exception $_ }
+#})
+#$btnServicios.Add_Click({
+#    try { Optimize-Services -Panel $script:Panel -ProgressBar $ProgressBar -StatusLabel $StatusLabel }
+#    catch { Show-Exception $_ }
+#})
 $btnTemp.Add_Click({
     try { Remove-JunkFiles -ProgressBar $ProgressBar -StatusLabel $StatusLabel }
     catch { Show-Exception $_ }
