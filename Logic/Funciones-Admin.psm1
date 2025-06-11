@@ -27,8 +27,34 @@ function Add-LocalUser {
 }
 
 function Remove-LocalUser {
-    param($UserName)
-    Remove-LocalUser -Name $UserName -ErrorAction Stop
+    param([string]$UserName)
+    if (-not $UserName) {
+        throw "El argumento UserName está vacío o nulo."
+    }
+
+    # 1. No permitir borrar usuario especial o propio
+    if ($UserName -eq $env:USERNAME -or $UserName -eq "SYSTEM" -or $UserName -eq "Administrador") {
+        throw "No se puede eliminar el usuario actual, SYSTEM o Administrador."
+    }
+
+    # 2. Revisar si tiene sesión activa
+    try {
+        $sessions = (& quser 2>$null) -match "^\s*\w+\s+$UserName\b"
+        if ($sessions) {
+            throw "No se puede eliminar el usuario '$UserName' porque tiene una sesión iniciada en el sistema."
+        }
+    } catch { }
+
+    # 3. Intentar eliminar y capturar error específico
+    try {
+        Microsoft.PowerShell.LocalAccounts\Remove-LocalUser -Name $UserName -ErrorAction Stop
+    } catch {
+        if ($_.Exception.Message -like "*estado = 3221225764*") {
+            throw "No se puede eliminar el usuario '$UserName' porque tiene sesión iniciada, un proceso activo o está en uso por el sistema."
+        } else {
+            throw $_
+        }
+    }
 }
 
 function Set-LocalUserPassword {

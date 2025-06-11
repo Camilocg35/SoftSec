@@ -54,7 +54,7 @@ $form.StartPosition = "CenterScreen"
 # Panel central
 $script:Panel = New-Object System.Windows.Forms.Panel
 $script:Panel.Size = New-Object System.Drawing.Size(860, 570)
-$script:Panel.Location = New-Object System.Drawing.Point(10, 70)
+$script:Panel.Location = New-Object System.Drawing.Point(10, 90)
 $script:Panel.AutoScroll = $true
 $form.Controls.Add($script:Panel)
 
@@ -117,8 +117,8 @@ function Show-AdminSoportePanel {
     $script:Panel.Controls.Clear()
 
     $tabControl = New-Object System.Windows.Forms.TabControl
-    $tabControl.Size = New-Object System.Drawing.Size(850,540)
-    $tabControl.Location = New-Object System.Drawing.Point(0,0)
+    $tabControl.Size = New-Object System.Drawing.Size(800,350)
+    $tabControl.Location = New-Object System.Drawing.Point(0,10)
 
     # 1. Gestión de red
     $tabNet = New-Object System.Windows.Forms.TabPage
@@ -126,8 +126,8 @@ function Show-AdminSoportePanel {
 
     $script:listNet = New-Object System.Windows.Forms.ListView
     $script:listNet.View = 'Details'
-    $script:listNet.Size = New-Object System.Drawing.Size(780, 120)
-    $script:listNet.Location = New-Object System.Drawing.Point(10,50)
+    $script:listNet.Size = New-Object System.Drawing.Size(850, 120)
+    $script:listNet.Location = New-Object System.Drawing.Point(0,30)
     $script:listNet.Columns.Add("Nombre",120)
     $script:listNet.Columns.Add("Estado",70)
     $script:listNet.Columns.Add("MAC",160)
@@ -167,45 +167,54 @@ function Show-AdminSoportePanel {
     $script:listUsers.Columns.Add("Último logon",140)
     $tabUsers.Controls.Add($script:listUsers)
 
-    $btnListUsers = New-Object System.Windows.Forms.Button
-    $btnListUsers.Text = "Listar usuarios"
-    $btnListUsers.Location = New-Object System.Drawing.Point(10,10)
+    $script:btnListUsers = New-Object System.Windows.Forms.Button
+    $script:btnListUsers.Text = "Listar usuarios"
+    $script:btnListUsers.Location = New-Object System.Drawing.Point(10,10)
+    $script:btnListUsers.Width=100
     $tabUsers.Controls.Add($btnListUsers)
 
     $btnAddUser = New-Object System.Windows.Forms.Button
     $btnAddUser.Text = "Agregar usuario"
     $btnAddUser.Location = New-Object System.Drawing.Point(130,10)
+    $btnAddUser.Width=100
     $tabUsers.Controls.Add($btnAddUser)
 
     $btnRemoveUser = New-Object System.Windows.Forms.Button
     $btnRemoveUser.Text = "Eliminar usuario"
     $btnRemoveUser.Location = New-Object System.Drawing.Point(250,10)
+    $btnRemoveUser.Width=100
     $tabUsers.Controls.Add($btnRemoveUser)
 
     $lblUser = New-Object System.Windows.Forms.Label
     $lblUser.Text = "Usuario:"
-    $lblUser.Location = New-Object System.Drawing.Point(10,240)
+    $lblUser.Width= 50
+    $lblUser.Location = New-Object System.Drawing.Point(5,240)
     $tabUsers.Controls.Add($lblUser)
 
     $txtUser = New-Object System.Windows.Forms.TextBox
-    $txtUser.Location = New-Object System.Drawing.Point(70,240)
-    $txtUser.Width = 100
+    $txtUser.Location = New-Object System.Drawing.Point(50,240)
+    $txtUser.Width = 150
+    $txtUser.Enabled= $true
+    $txtUser.Text = ($out -join "`r`n") + "`r`n"
     $tabUsers.Controls.Add($txtUser)
 
     $lblPass = New-Object System.Windows.Forms.Label
     $lblPass.Text = "Contraseña:"
-    $lblPass.Location = New-Object System.Drawing.Point(190,240)
+    $lblPass.Location = New-Object System.Drawing.Point(200,240)
+    $lblPass.Width=75
     $tabUsers.Controls.Add($lblPass)
 
     $txtPass = New-Object System.Windows.Forms.TextBox
-    $txtPass.Location = New-Object System.Drawing.Point(270,240)
-    $txtPass.Width = 100
+    $txtPass.Location = New-Object System.Drawing.Point(290,240)
+    $txtPass.Width = 150
     $txtPass.PasswordChar = "*"
+    $txtPass.Enabled = $true
+    $txtPass.Text = ($out -join "`r`n") + "`r`n"
     $tabUsers.Controls.Add($txtPass)
 
     $btnSetPassword = New-Object System.Windows.Forms.Button
     $btnSetPassword.Text = "Cambiar contraseña"
-    $btnSetPassword.Location = New-Object System.Drawing.Point(380,240)
+    $btnSetPassword.Location = New-Object System.Drawing.Point(450,240)
     $tabUsers.Controls.Add($btnSetPassword)
 
     # --- USUARIOS: Listar ---
@@ -234,7 +243,7 @@ function Show-AdminSoportePanel {
                 } else {
                     Add-LocalUser -UserName $user -Password $pw
                     [System.Windows.Forms.MessageBox]::Show("Usuario agregado.")
-                    $btnListUsers.PerformClick()
+                    $script:btnListUsers.PerformClick()
                 }
             } else {
                 [System.Windows.Forms.MessageBox]::Show("Ingresa usuario y contraseña.")
@@ -244,21 +253,21 @@ function Show-AdminSoportePanel {
 
     # --- USUARIOS: Eliminar ---
     $btnRemoveUser.Add_Click({
-        try {
-            if ($script:listUsers.SelectedItems.Count -gt 0) {
-                $selected = $script:listUsers.SelectedItems[0].Text
-                if ($selected -eq $env:USERNAME -or $selected -eq "SYSTEM" -or $selected -eq "Administrador") {
-                    [System.Windows.Forms.MessageBox]::Show("No se puede eliminar el usuario actual, 'SYSTEM' o 'Administrador'.")
-                } else {
-                    Remove-LocalUser -Name $selected
-                    [System.Windows.Forms.MessageBox]::Show("Usuario eliminado.")
-                    $btnListUsers.PerformClick()
-                }
+    try {
+        if ($script:listUsers.SelectedItems.Count -gt 0) {
+            $selected = $script:listUsers.SelectedItems[0].Text
+            if (![string]::IsNullOrWhiteSpace($selected)) {
+                Remove-LocalUser -UserName $selected
+                [System.Windows.Forms.MessageBox]::Show("Usuario eliminado.")
+                $btnListUsers.PerformClick()
             } else {
                 [System.Windows.Forms.MessageBox]::Show("Selecciona un usuario para eliminar.")
             }
-        } catch { Show-Exception $_ }
-    })
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("Selecciona un usuario para eliminar.")
+        }
+    } catch { Show-Exception $_ }
+})
 
     # --- USUARIOS: Cambiar contraseña ---
     $btnSetPassword.Add_Click({
