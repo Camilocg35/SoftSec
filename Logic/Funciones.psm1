@@ -1,4 +1,4 @@
-function Set-StatusText {
+﻿function Set-StatusText {
     param(
         $Label,
         [string]$Text
